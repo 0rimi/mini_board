@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="test.spring.mvc.repository.BoardMapper">
+
+	<select id="count" resultType="int">
+		select count(*) from freeboard
+	</select>
+	<select id="list" resultType="test.spring.mvc.bean.BoardDTO" parameterType="hashmap">
+		<![CDATA[
+		select * from 
+		 (select b.* , rownum r from
+		  (select * from freeboard order by ref desc , re_step asc ) b)
+				 where r >= #{start} and r <= #{end}
+		]]>		  
+	</select>
+	
+	<select id="maxNum" resultType="int">
+		select NVL(max(num),0) from freeboard
+	</select>
+	
+	<update id="writeUpdate" parameterType="test.spring.mvc.bean.BoardDTO">
+		<![CDATA[
+		update freeboard set re_step=re_step+1 
+			where ref=#{ref} and re_step > #{re_step}
+		]]>
+	</update>
+	<insert id="writeInsert" parameterType="test.spring.mvc.bean.BoardDTO">
+		insert into freeboard(num,writer,email,subject,passwd,reg_date,
+			ref,re_step,re_level,content,ip,isfile) values(
+			freeboard_seq.NEXTVAL,
+			#{writer},
+			#{email},
+			#{subject},
+			#{passwd},
+			sysdate,
+			#{ref},
+			#{re_step},
+			#{re_level},
+			#{content},
+			#{ip},
+			#{isfile}
+		)
+	</insert>
+	
+	<update id="updateCountUp">
+		update freeboard set readcount=readcount+1 where num = #{num}
+	</update>
+	
+	<select id="readNum" resultType="test.spring.mvc.bean.BoardDTO">
+		select * from freeboard where num = #{num}
+	</select>
+	
+	<select id="readPasswd" resultType="String" parameterType="int">
+		select passwd from freeboard where num = #{num}
+	</select>
+	
+	<update id="updateNum" parameterType="test.spring.mvc.bean.BoardDTO">
+		update freeboard 
+			<set>
+				<if test="writer != null">writer=#{writer},</if>
+				<if test="email != null">email=#{email},</if>
+				<if test="subject != null">subject=#{subject},</if>
+				<if test="content != null">content=#{content},</if>
+				<if test="passwd != null">passwd=#{passwd}</if>
+			</set>
+			where num=#{num}
+	</update>
+	
+	<delete id="deleteNum">
+		delete from freeboard where num=#{num}
+	</delete>
+	
+	<insert id="fileInsert">
+		insert into freeboard_file values(
+		freeboard_file_seq.nextval,
+		#{freeboardnum},
+		#{fileName}
+		)
+	</insert>
+	
+	<!-- boardfile 이름만 뽑아내기
+	<select id="getFiles">
+		select filename from freeboard_file where freeboardnum=#{freeboardnum}
+	</select>
+	-->
+	
+	<delete id="deleteFile">
+		delete from freeboard_file where freeboardnum=#{freeboardnum}
+	</delete>
+	
+	<update id="set0isFile">
+		update freeboard 
+			set isfile = 0
+			where num=#{num}
+	</update>
+	
+	<select id="fileList" resultType="boardFileDTO">
+		select * from freeboard_file where freeboardnum=#{freeboardnum}
+	</select>
+</mapper>   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
